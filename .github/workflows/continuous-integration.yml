@@ -25,9 +25,6 @@ jobs:
           - "7.4"
         deps:
           - "fixed"
-        include:
-          - deps: "low"
-            php-version: "7.3"
 
     steps:
       - name: "Checkout"
@@ -50,11 +47,11 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer update --no-interaction --no-progress"
         if: "${{ matrix.deps == 'fixed' }}"
 
       - name: "Install lowest possible dependencies with composer"
-        run: "composer update --no-interaction --no-progress --no-suggest --prefer-dist --prefer-lowest"
+        run: "composer update --no-interaction --no-progress --prefer-dist --prefer-lowest"
         if: "${{ matrix.deps == 'low' }}"
 
       - name: "Run PHPUnit"
@@ -65,6 +62,52 @@ jobs:
         with:
           name: "phpunit-sqlite-${{ matrix.deps }}-${{ matrix.php-version }}.coverage"
           path: "coverage.xml"
+
+  phpunit-lower-php-versions:
+    name: "PHPUnit with SQLite"
+    runs-on: "ubuntu-20.04"
+
+    strategy:
+      matrix:
+        php-version:
+          - "7.1"
+          - "7.2"
+        deps:
+          - "fixed"
+        include:
+          - deps: "low"
+            php-version: "7.1"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v2"
+        with:
+          fetch-depth: 2
+
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          php-version: "${{ matrix.php-version }}"
+          coverage: "pcov"
+          ini-values: "zend.assertions=1"
+
+      - name: "Cache dependencies installed with composer"
+        uses: "actions/cache@v2"
+        with:
+          path: "~/.composer/cache"
+          key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
+          restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
+
+      - name: "Install dependencies with composer"
+        run: "composer update --no-interaction --no-progress"
+        if: "${{ matrix.deps == 'fixed' }}"
+
+      - name: "Install lowest possible dependencies with composer"
+        run: "composer update --no-interaction --no-progress --prefer-dist --prefer-lowest"
+        if: "${{ matrix.deps == 'low' }}"
+
+      - name: "Run PHPUnit"
+        run: "vendor/bin/phpunit -c ci/github/phpunit/sqlite.xml"
 
   phpunit-oci8:
     name: "PHPUnit on OCI8"
@@ -104,7 +147,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer update --no-interaction --no-progress"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c ci/github/phpunit/oci8.xml --coverage-clover=coverage.xml"
@@ -153,7 +196,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer update --no-interaction --no-progress"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c ci/github/phpunit/pdo_oci.xml --coverage-clover=coverage.xml"
@@ -217,7 +260,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer update --no-interaction --no-progress"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c ci/github/phpunit/pdo_pgsql.xml --coverage-clover=coverage.xml"
@@ -283,7 +326,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer update --no-interaction --no-progress"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c ci/github/phpunit/${{ matrix.extension }}.xml --coverage-clover=coverage.xml"
@@ -368,7 +411,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer update --no-interaction --no-progress"
 
       - name: "Copy TLS-related files"
         run: 'docker cp "${{ job.services.mysql.id }}:/var/lib/mysql/ca.pem" . && docker cp "${{ job.services.mysql.id }}:/var/lib/mysql/client-cert.pem" . && docker cp "${{ job.services.mysql.id }}:/var/lib/mysql/client-key.pem" .'
@@ -443,7 +486,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer update --no-interaction --no-progress"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c ci/github/phpunit/${{ matrix.extension }}.xml --coverage-clover=coverage.xml"
@@ -508,7 +551,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer update --no-interaction --no-progress"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c ci/github/phpunit/ibm_db2.xml --coverage-clover=coverage.xml"
@@ -549,7 +592,7 @@ jobs:
         run: "composer config minimum-stability dev"
 
       - name: "Install development dependencies with composer"
-        run: "composer update --no-interaction --no-progress --no-suggest --prefer-dist"
+        run: "composer update --no-interaction --no-progress --prefer-dist"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c ci/github/phpunit/sqlite.xml"

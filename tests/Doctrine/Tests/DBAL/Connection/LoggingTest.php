@@ -8,10 +8,13 @@ use Doctrine\DBAL\Driver\Connection as DriverConnection;
 use Doctrine\DBAL\Driver\Statement;
 use Doctrine\DBAL\Logging\SQLLogger;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\Tests\DBAL\LegacyAssertions;
 use PHPUnit\Framework\TestCase;
 
 final class LoggingTest extends TestCase
 {
+    use LegacyAssertions;
+
     public function testLogExecuteQuery(): void
     {
         $driverConnection = $this->createStub(DriverConnection::class);

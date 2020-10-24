@@ -3,6 +3,7 @@
 namespace Doctrine\Tests\DBAL\Types;
 
 use Doctrine\DBAL\Types\ConversionException;
+use Doctrine\Tests\DBAL\LegacyAssertions;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use Throwable;
@@ -11,6 +12,8 @@ use function tmpfile;
 
 class ConversionExceptionTest extends TestCase
 {
+    use LegacyAssertions;
+
     public function testConversionFailedPreviousException(): void
     {
         $previous = $this->createMock(Throwable::class);
