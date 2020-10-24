@@ -2,7 +2,6 @@
 
 namespace Doctrine\Tests\DBAL\Platforms;
 
-use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\PostgreSqlPlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ColumnDiff;
@@ -15,17 +14,13 @@ use Doctrine\DBAL\TransactionIsolationLevel;
 use Doctrine\DBAL\Types\Type;
 use UnexpectedValueException;
 
+use function assert;
 use function sprintf;
 
 abstract class AbstractPostgreSqlPlatformTestCase extends AbstractPlatformTestCase
 {
     /** @var PostgreSqlPlatform */
     protected $platform;
-
-    /**
-     * @return PostgreSqlPlatform
-     */
-    abstract public function createPlatform(): AbstractPlatform;
 
     public function getGenerateTableSql(): string
     {
@@ -464,6 +459,7 @@ abstract class AbstractPostgreSqlPlatformTestCase extends AbstractPlatformTestCa
     public function testConvertBooleanAsLiteralIntegers(): void
     {
         $platform = $this->createPlatform();
+        assert($platform instanceof PostgreSqlPlatform);
         $platform->setUseBooleanTrueFalseStrings(false);
 
         self::assertEquals(1, $platform->convertBooleans(true));
@@ -492,6 +488,7 @@ abstract class AbstractPostgreSqlPlatformTestCase extends AbstractPlatformTestCa
     public function testConvertBooleanAsDatabaseValueIntegers(): void
     {
         $platform = $this->createPlatform();
+        assert($platform instanceof PostgreSqlPlatform);
         $platform->setUseBooleanTrueFalseStrings(false);
 
         self::assertSame(1, $platform->convertBooleansToDatabaseValue(true));
