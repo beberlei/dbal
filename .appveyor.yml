@@ -104,7 +104,7 @@ install:
     # install composer dependencies
     - cd C:\projects\dbal
     - appveyor-retry composer self-update
-    - appveyor-retry composer install --no-progress --prefer-dist
+    - appveyor-retry composer update --no-progress --prefer-dist
 
 before_test:
 # Selectively start the services
