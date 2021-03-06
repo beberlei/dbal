@@ -23,9 +23,6 @@ use function sprintf;
  */
 abstract class AbstractPostgreSqlPlatformTestCase extends AbstractPlatformTestCase
 {
-    /** @var PostgreSqlPlatform */
-    protected $platform;
-
     public function getGenerateTableSql(): string
     {
         return 'CREATE TABLE test (id SERIAL NOT NULL, test VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))';
@@ -463,7 +460,6 @@ abstract class AbstractPostgreSqlPlatformTestCase extends AbstractPlatformTestCa
     public function testConvertBooleanAsLiteralIntegers(): void
     {
         $platform = $this->createPlatform();
-        assert($platform instanceof PostgreSqlPlatform);
         $platform->setUseBooleanTrueFalseStrings(false);
 
         self::assertEquals(1, $platform->convertBooleans(true));
@@ -492,7 +488,6 @@ abstract class AbstractPostgreSqlPlatformTestCase extends AbstractPlatformTestCa
     public function testConvertBooleanAsDatabaseValueIntegers(): void
     {
         $platform = $this->createPlatform();
-        assert($platform instanceof PostgreSqlPlatform);
         $platform->setUseBooleanTrueFalseStrings(false);
 
         self::assertSame(1, $platform->convertBooleansToDatabaseValue(true));
