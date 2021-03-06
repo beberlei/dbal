@@ -69,7 +69,9 @@ abstract class SchemaManagerFunctionalTestCase extends DbalFunctionalTestCase
 
     protected function tearDown(): void
     {
-        parent::tearDown();
+        if ($this->schemaManager->tablesExist(['json_array_test'])) {
+            $this->schemaManager->dropTable('json_array_test');
+        }
 
         $this->schemaManager->tryMethod('dropTable', 'testschema.my_table_in_namespace');
 
@@ -78,8 +80,11 @@ abstract class SchemaManagerFunctionalTestCase extends DbalFunctionalTestCase
             //sql server versions below 2016 do not support 'IF EXISTS' so we have to catch the exception here
             $this->connection->exec('DROP SCHEMA testschema');
         } catch (DBALException $e) {
-            return;
         }
+
+        $this->markConnectionNotReusable();
+
+        parent::tearDown();
     }
 
     public function testDropsDatabaseWithActiveConnections(): void
@@ -170,8 +175,6 @@ abstract class SchemaManagerFunctionalTestCase extends DbalFunctionalTestCase
 
         $sequences = $this->schemaManager->listSequences();
 
-        self::assertIsArray($sequences, 'listSequences() should return an array.');
-
         $foundSequence = null;
         foreach ($sequences as $sequence) {
             self::assertInstanceOf(Sequence::class, $sequence);
@@ -228,9 +231,6 @@ abstract class SchemaManagerFunctionalTestCase extends DbalFunctionalTestCase
     {
         $this->createTestTable('list_tables_test');
         $tables = $this->schemaManager->listTables();
-
-        self::assertIsArray($tables);
-        self::assertTrue(count($tables) > 0, "List Tables has to find at least one table named 'list_tables_test'.");
 
         $foundTable = false;
         foreach ($tables as $table) {
@@ -363,16 +363,12 @@ abstract class SchemaManagerFunctionalTestCase extends DbalFunctionalTestCase
             ->expects($this->exactly(7))
             ->method('onSchemaColumnDefinition');
 
-        $oldEventManager = $this->schemaManager->getDatabasePlatform()->getEventManager();
-
         $eventManager = new EventManager();
         $eventManager->addEventListener([Events::onSchemaColumnDefinition], $listenerMock);
 
         $this->schemaManager->getDatabasePlatform()->setEventManager($eventManager);
 
         $this->schemaManager->listTableColumns('list_table_columns');
-
-        $this->schemaManager->getDatabasePlatform()->setEventManager($oldEventManager);
     }
 
     public function testListTableIndexesDispatchEvent(): void
@@ -388,16 +384,12 @@ abstract class SchemaManagerFunctionalTestCase extends DbalFunctionalTestCase
             ->expects($this->exactly(3))
             ->method('onSchemaIndexDefinition');
 
-        $oldEventManager = $this->schemaManager->getDatabasePlatform()->getEventManager();
-
         $eventManager = new EventManager();
         $eventManager->addEventListener([Events::onSchemaIndexDefinition], $listenerMock);
 
         $this->schemaManager->getDatabasePlatform()->setEventManager($eventManager);
 
         $this->schemaManager->listTableIndexes('list_table_indexes_test');
-
-        $this->schemaManager->getDatabasePlatform()->setEventManager($oldEventManager);
     }
 
     public function testDiffListTableColumns(): void
@@ -454,7 +446,6 @@ abstract class SchemaManagerFunctionalTestCase extends DbalFunctionalTestCase
 
         $this->schemaManager->dropAndCreateIndex($table->getIndex('test'), $table);
         $tableIndexes = $this->schemaManager->listTableIndexes('test_create_index');
-        self::assertIsArray($tableIndexes);
 
         self::assertEquals('test', strtolower($tableIndexes['test']->getName()));
         self::assertEquals(['test'], array_map('strtolower', $tableIndexes['test']->getColumns()));
@@ -1287,18 +1278,6 @@ abstract class SchemaManagerFunctionalTestCase extends DbalFunctionalTestCase
         self::assertCount(2, $indexes);
         self::assertArrayHasKey('explicit_fk1_idx', $indexes);
         self::assertArrayHasKey('idx_3d6c147fdc58d6c', $indexes);
-    }
-
-    /**
-     * @after
-     */
-    public function removeJsonArrayTable(): void
-    {
-        if (! $this->schemaManager->tablesExist(['json_array_test'])) {
-            return;
-        }
-
-        $this->schemaManager->dropTable('json_array_test');
     }
 
     public function testComparatorShouldReturnFalseWhenLegacyJsonArrayColumnHasComment(): void

@@ -25,29 +25,37 @@ abstract class DbalFunctionalTestCase extends DbalTestCase
     /**
      * Shared connection when a TestCase is run alone (outside of it's functional suite)
      *
-     * @var Connection
+     * @var Connection|null
      */
     private static $sharedConnection;
 
     /** @var Connection */
     protected $connection;
 
-    /** @var DebugStack */
+    /** @var DebugStack|null */
     protected $sqlLoggerStack;
 
-    protected function resetSharedConn(): void
-    {
-        if (! self::$sharedConnection) {
-            return;
-        }
+    /**
+     * Whether the shared connection could be reused by subsequent tests.
+     *
+     * @var bool
+     */
+    private $isConnectionReusable = true;
 
-        self::$sharedConnection->close();
-        self::$sharedConnection = null;
+    /**
+     * Mark shared connection not reusable for subsequent tests.
+     *
+     * Should be called by the tests that modify configuration configuration
+     * or alter the connection state in another way that may impact other tests.
+     */
+    protected function markConnectionNotReusable(): void
+    {
+        $this->isConnectionReusable = false;
     }
 
     protected function setUp(): void
     {
-        if (! isset(self::$sharedConnection)) {
+        if (self::$sharedConnection === null) {
             self::$sharedConnection = TestUtil::getConnection();
         }
 
@@ -62,6 +70,24 @@ abstract class DbalFunctionalTestCase extends DbalTestCase
         while ($this->connection->isTransactionActive()) {
             $this->connection->rollBack();
         }
+
+        if ($this->isConnectionReusable) {
+            return;
+        }
+
+        if (self::$sharedConnection !== null) {
+            self::$sharedConnection->close();
+            self::$sharedConnection = null;
+        }
+
+        // Make sure the connection is no longer available to the test.
+        // Otherwise, there is a chance that a teardown method of the test will reconnect
+        // (e.g. to drop a table), and then this reopened connection will remain open and attached to the PHPUnit result
+        // until the end of the suite leaking connection resources, while subsequent tests will use
+        // the newly established shared connection.
+        unset($this->connection);
+
+        $this->isConnectionReusable = true;
     }
 
     protected function onNotSuccessfulTest(Throwable $t): void
@@ -70,21 +96,28 @@ abstract class DbalFunctionalTestCase extends DbalTestCase
             throw $t;
         }
 
-        if (isset($this->sqlLoggerStack->queries) && count($this->sqlLoggerStack->queries)) {
+        if ($this->sqlLoggerStack !== null && count($this->sqlLoggerStack->queries) > 0) {
             $queries = '';
             $i       = count($this->sqlLoggerStack->queries);
             foreach (array_reverse($this->sqlLoggerStack->queries) as $query) {
-                $params   = array_map(static function ($p) {
-                    if (is_object($p)) {
-                        return get_class($p);
-                    }
+                $params = array_map(
+                    /**
+                     * @param mixed $p
+                     */
+                    static function ($p) {
+                        if (is_object($p)) {
+                            return get_class($p);
+                        }
 
-                    if (is_scalar($p)) {
-                        return "'" . $p . "'";
-                    }
+                        if (is_scalar($p)) {
+                            return "'" . $p . "'";
+                        }
 
-                    return var_export($p, true);
-                }, $query['params'] ?: []);
+                        return var_export($p, true);
+                    },
+                    $query['params'] ?: []
+                );
+
                 $queries .= $i . ". SQL: '" . $query['sql'] . "' Params: " . implode(', ', $params) . PHP_EOL;
                 $i--;
             }

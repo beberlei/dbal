@@ -21,11 +21,11 @@ use function sprintf;
 use function strtoupper;
 use function uniqid;
 
+/**
+ * @extends AbstractPlatformTestCase<OraclePlatform>
+ */
 class OraclePlatformTest extends AbstractPlatformTestCase
 {
-    /** @var OraclePlatform */
-    protected $platform;
-
     /**
      * @return mixed[][]
      */
@@ -80,9 +80,6 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         $platform->assertValidIdentifier($identifier);
     }
 
-    /**
-     * @return OraclePlatform
-     */
     public function createPlatform(): AbstractPlatform
     {
         return new OraclePlatform();
@@ -388,7 +385,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         ];
         $statements = $this->platform->getCreateTableSQL($table);
         //strip all the whitespace from the statements
-        array_walk($statements, static function (&$value): void {
+        array_walk($statements, static function (string &$value): void {
             $value = preg_replace('/\s+/', ' ', $value);
         });
         foreach ($targets as $key => $sql) {

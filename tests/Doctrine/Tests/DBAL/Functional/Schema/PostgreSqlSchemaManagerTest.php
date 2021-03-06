@@ -18,28 +18,15 @@ use Doctrine\DBAL\Types\Types;
 use function array_map;
 use function array_pop;
 use function array_unshift;
+use function assert;
 use function count;
 use function strtolower;
 
 class PostgreSqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
 {
-    /** @var PostgreSqlSchemaManager */
-    protected $schemaManager;
-
     protected function supportsPlatform(AbstractPlatform $platform): bool
     {
         return $platform instanceof PostgreSQL94Platform;
-    }
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-
-        if (! $this->connection) {
-            return;
-        }
-
-        $this->connection->getConfiguration()->setSchemaAssetsFilter(null);
     }
 
     public function testGetSearchPath(): void
@@ -57,10 +44,10 @@ class PostgreSqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function testGetSchemaNames(): void
     {
+        assert($this->schemaManager instanceof PostgreSqlSchemaManager);
+
         $names = $this->schemaManager->getSchemaNames();
 
-        self::assertIsArray($names);
-        self::assertNotEmpty($names);
         self::assertContains('public', $names, 'The public schema should be found.');
     }
 

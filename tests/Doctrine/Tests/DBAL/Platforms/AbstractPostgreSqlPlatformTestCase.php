@@ -17,6 +17,10 @@ use UnexpectedValueException;
 use function assert;
 use function sprintf;
 
+/**
+ * @template T of PostgreSqlPlatform
+ * @extends AbstractPlatformTestCase<T>
+ */
 abstract class AbstractPostgreSqlPlatformTestCase extends AbstractPlatformTestCase
 {
     /** @var PostgreSqlPlatform */

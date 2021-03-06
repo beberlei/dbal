@@ -22,20 +22,15 @@ use function unlink;
 
 class ConnectionTest extends DbalFunctionalTestCase
 {
-    protected function setUp(): void
-    {
-        $this->resetSharedConn();
-        parent::setUp();
-    }
-
     protected function tearDown(): void
     {
         if (file_exists('/tmp/test_nesting.sqlite')) {
             unlink('/tmp/test_nesting.sqlite');
         }
 
+        $this->markConnectionNotReusable();
+
         parent::tearDown();
-        $this->resetSharedConn();
     }
 
     public function testGetWrappedConnection(): void
@@ -245,8 +240,7 @@ class ConnectionTest extends DbalFunctionalTestCase
     public function testTransactionalWithException(): void
     {
         try {
-            $this->connection->transactional(static function ($conn): void {
-                /** @var Connection $conn */
+            $this->connection->transactional(static function (Connection $conn): void {
                 $conn->executeQuery($conn->getDatabasePlatform()->getDummySelectSQL());
 
                 throw new RuntimeException('Ooops!');
@@ -260,8 +254,7 @@ class ConnectionTest extends DbalFunctionalTestCase
     public function testTransactionalWithThrowable(): void
     {
         try {
-            $this->connection->transactional(static function ($conn): void {
-                /** @var Connection $conn */
+            $this->connection->transactional(static function (Connection $conn): void {
                 $conn->executeQuery($conn->getDatabasePlatform()->getDummySelectSQL());
 
                 throw new Error('Ooops!');
@@ -274,8 +267,7 @@ class ConnectionTest extends DbalFunctionalTestCase
 
     public function testTransactional(): void
     {
-        $res = $this->connection->transactional(static function ($conn): void {
-            /** @var Connection $conn */
+        $res = $this->connection->transactional(static function (Connection $conn): void {
             $conn->executeQuery($conn->getDatabasePlatform()->getDummySelectSQL());
         });
 
