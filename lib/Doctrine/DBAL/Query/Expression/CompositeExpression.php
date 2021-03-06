@@ -3,6 +3,7 @@
 namespace Doctrine\DBAL\Query\Expression;
 
 use Countable;
+use Doctrine\Deprecations\Deprecation;
 
 use function array_merge;
 use function count;
@@ -43,11 +44,21 @@ class CompositeExpression implements Countable
      * @param string          $type  Instance type of composite expression.
      * @param self[]|string[] $parts Composition of expressions to be joined on composite expression.
      */
-    public function __construct($type, array $parts = [])
+    public function __construct($type, array $parts = [], bool $internalFlagCalledByFactory = false)
     {
         $this->type = $type;
 
-        $this->addMultiple($parts);
+        $this->addMultiple($parts, $internalFlagCalledByFactory);
+
+        if ($internalFlagCalledByFactory) {
+            return;
+        }
+
+        Deprecation::trigger(
+            'doctrine/dbal',
+            'https://github.com/doctrine/dbal/pull/3864',
+            'Do not use CompositeExpression constructor directly, use static and() and or() factory methods.'
+        );
     }
 
     /**
@@ -56,7 +67,7 @@ class CompositeExpression implements Countable
      */
     public static function and($part, ...$parts): self
     {
-        return new self(self::TYPE_AND, array_merge([$part], $parts));
+        return new self(self::TYPE_AND, array_merge([$part], $parts), true);
     }
 
     /**
@@ -65,7 +76,7 @@ class CompositeExpression implements Countable
      */
     public static function or($part, ...$parts): self
     {
-        return new self(self::TYPE_OR, array_merge([$part], $parts));
+        return new self(self::TYPE_OR, array_merge([$part], $parts), true);
     }
 
     /**
@@ -77,10 +88,18 @@ class CompositeExpression implements Countable
      *
      * @return CompositeExpression
      */
-    public function addMultiple(array $parts = [])
+    public function addMultiple(array $parts = [], bool $internalFlagCalledByConstructor = false)
     {
+        if ($internalFlagCalledByConstructor === false) {
+            Deprecation::trigger(
+                'doctrine/dbal',
+                'https://github.com/doctrine/dbal/issues/3844',
+                'CompositeExpression::addMultiple() is deprecated, use CompositeExpression::with() instead.'
+            );
+        }
+
         foreach ($parts as $part) {
-            $this->add($part);
+            $this->add($part, true);
         }
 
         return $this;
@@ -95,8 +114,16 @@ class CompositeExpression implements Countable
      *
      * @return CompositeExpression
      */
-    public function add($part)
+    public function add($part, bool $internalFlagCalledByAddMultiple = false)
     {
+        if ($internalFlagCalledByAddMultiple === false) {
+            Deprecation::trigger(
+                'doctrine/dbal',
+                'https://github.com/doctrine/dbal/issues/3844',
+                'CompositeExpression::add() is deprecated, use CompositeExpression::with() instead.'
+            );
+        }
+
         if (empty($part)) {
             return $this;
         }
