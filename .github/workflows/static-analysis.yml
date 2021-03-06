@@ -49,9 +49,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: "Update dependencies with composer"
-        run: "composer update --no-interaction --no-progress --no-suggest"
-
       - name: Psalm
         uses: docker://vimeo/psalm-github-actions:4.5.2
         with:
