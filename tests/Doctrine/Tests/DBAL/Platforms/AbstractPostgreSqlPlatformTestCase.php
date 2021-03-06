@@ -14,7 +14,6 @@ use Doctrine\DBAL\TransactionIsolationLevel;
 use Doctrine\DBAL\Types\Type;
 use UnexpectedValueException;
 
-use function assert;
 use function sprintf;
 
 /**
