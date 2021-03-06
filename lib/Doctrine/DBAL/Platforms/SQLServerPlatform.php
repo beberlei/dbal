@@ -228,14 +228,12 @@ class SQLServerPlatform extends AbstractPlatform
             $table = $table->getQuotedName($this);
         }
 
-        return sprintf(
-            <<<SQL
+        return sprintf("
                 IF EXISTS (SELECT * FROM sysobjects WHERE name = '%s')
                     ALTER TABLE %s DROP CONSTRAINT %s
                 ELSE
                     DROP INDEX %s ON %s
-                SQL
-            ,
+            ",
             $index,
             $table,
             $index,
@@ -1690,13 +1688,11 @@ class SQLServerPlatform extends AbstractPlatform
 
     protected function getCommentOnTableSQL(string $tableName, ?string $comment): string
     {
-        return sprintf(
-            <<<'SQL'
+        return sprintf("
                 EXEC sys.sp_addextendedproperty @name=N'MS_Description',
                   @value=N%s, @level0type=N'SCHEMA', @level0name=N'dbo',
                   @level1type=N'TABLE', @level1name=N%s
-                SQL
-            ,
+            ",
             $this->quoteStringLiteral((string) $comment),
             $this->quoteStringLiteral($tableName)
         );
@@ -1704,8 +1700,7 @@ class SQLServerPlatform extends AbstractPlatform
 
     public function getListTableMetadataSQL(string $table): string
     {
-        return sprintf(
-            <<<'SQL'
+        return sprintf("
                 SELECT
                   p.value AS [table_comment]
                 FROM
@@ -1713,8 +1708,7 @@ class SQLServerPlatform extends AbstractPlatform
                   INNER JOIN sys.extended_properties AS p ON p.major_id=tbl.object_id AND p.minor_id=0 AND p.class=1
                 WHERE
                   (tbl.name=N%s and SCHEMA_NAME(tbl.schema_id)=N'dbo' and p.name=N'MS_Description')
-                SQL
-            ,
+            ",
             $this->quoteStringLiteral($table)
         );
     }
