@@ -228,7 +228,8 @@ class SQLServerPlatform extends AbstractPlatform
             $table = $table->getQuotedName($this);
         }
 
-        return sprintf("
+        return sprintf(
+            "
                 IF EXISTS (SELECT * FROM sysobjects WHERE name = '%s')
                     ALTER TABLE %s DROP CONSTRAINT %s
                 ELSE
@@ -1688,7 +1689,8 @@ class SQLServerPlatform extends AbstractPlatform
 
     protected function getCommentOnTableSQL(string $tableName, ?string $comment): string
     {
-        return sprintf("
+        return sprintf(
+            "
                 EXEC sys.sp_addextendedproperty @name=N'MS_Description',
                   @value=N%s, @level0type=N'SCHEMA', @level0name=N'dbo',
                   @level1type=N'TABLE', @level1name=N%s
@@ -1700,7 +1702,8 @@ class SQLServerPlatform extends AbstractPlatform
 
     public function getListTableMetadataSQL(string $table): string
     {
-        return sprintf("
+        return sprintf(
+            "
                 SELECT
                   p.value AS [table_comment]
                 FROM
