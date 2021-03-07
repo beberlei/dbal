@@ -2,7 +2,7 @@
 
 namespace Doctrine\Tests\DBAL;
 
-trait LegacyAssertions
+trait AssertionCompatibility
 {
     /**
      * @param array<mixed> $arguments

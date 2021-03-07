@@ -12,13 +12,13 @@ use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\BlobType;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
-use Doctrine\Tests\DBAL\LegacyAssertions;
+use Doctrine\Tests\DBAL\AssertionCompatibility;
 
 use function dirname;
 
 class SqliteSchemaManagerTest extends SchemaManagerFunctionalTestCase
 {
-    use LegacyAssertions;
+    use AssertionCompatibility;
 
     protected function supportsPlatform(AbstractPlatform $platform): bool
     {

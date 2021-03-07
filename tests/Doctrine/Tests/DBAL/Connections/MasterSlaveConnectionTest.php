@@ -4,12 +4,12 @@ namespace Doctrine\Tests\DBAL\Connections;
 
 use Doctrine\DBAL\Connections\MasterSlaveConnection;
 use Doctrine\DBAL\Driver;
-use Doctrine\Tests\DBAL\LegacyAssertions;
+use Doctrine\Tests\DBAL\AssertionCompatibility;
 use Doctrine\Tests\DbalTestCase;
 
 class MasterSlaveConnectionTest extends DbalTestCase
 {
-    use LegacyAssertions;
+    use AssertionCompatibility;
 
     public function testConnectionParamsRemainAvailable(): void
     {
