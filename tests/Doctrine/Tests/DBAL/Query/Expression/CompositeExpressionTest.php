@@ -12,6 +12,9 @@ class CompositeExpressionTest extends DbalTestCase
 
     public function testCount(): void
     {
+        $this->expectNoDeprecationWithIdentifier('https://github.com/doctrine/dbal/issues/3844');
+        $this->expectNoDeprecationWithIdentifier('https://github.com/doctrine/dbal/pull/3864');
+
         $expr = CompositeExpression::or('u.group_id = 1');
 
         self::assertCount(1, $expr);
